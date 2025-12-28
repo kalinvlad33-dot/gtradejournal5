@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G Trade Journal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #000000;
+            min-height: 100vh;
+        }
+        header {
+            background: #000000;
+            padding: 30px 40px;
+            text-align: center;
+            border-bottom: 1px solid #222;
+            position: relative;
+        }
+        .logo {
+            width: 160px;
+            height: auto;
+            margin-bottom: 12px;
+            filter: brightness(1.2);
+        }
+        h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 4px;
+            color: #ffffff;
+        }
+        .header-buttons {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            gap: 16px;
+        }
+        .btn {
+            background: #0066ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover { background: #0055dd; }
+
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 30px 20px;
+        }
+        .stat-card {
+            background: #111111;
+            border-radius: 10px;
+            padding: 16px 24px;
+            width: 160px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 1px solid #222;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 30px 30px 30px;
+        }
+        th {
+            text-align: left;
+            padding: 14px 10px;
+            font-weight: 600;
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border-bottom: 1px solid #222;
+        }
+        td {
+            padding: 14px 10px;
+            border-bottom: 1px solid #111;
+            font-size: 14px;
+        }
+        tr:hover { background: #151515; }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-asia { background: #2d1b3a; color: #c9a7eb; }
+        .badge-frankfurt { background: #3a2d1b; color: #e6b587; }
+        .badge-london { background: #1a3a6e; color: #6eb5ff; }
+        .badge-ny { background: #1e4d2b; color: #6dff8c; }
+        .badge-long  { background: #1e4d2b; color: #6dff8c; }
+        .badge-short { background: #5e1c1c; color: #ff6b6b; }
+
+        .pl-positive { color: #6dff8c; font-weight: 700; }
+        .pl-negative { color: #ff6b6b; font-weight: 700; }
+        .pl-zero { color: #aaaa00; font-weight: 700; }
+
+        .win-take { color: #6dff8c; font-weight: 700; }
+        .win-stop { color: #ff6b6b; font-weight: 700; }
+        .win-be   { color: #aaaa00; font-weight: 700; }
+
+        .pair { font-weight: 700; color: #fff; }
+        .date { color: #aaa; font-size: 13px; }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .delete-btn:hover { color: #ff4444; }
+
+        /* НОВАЯ ФОРМА — МОДАЛЬНОЕ ОКНО ПО ЦЕНТРУ */
+        #addFormOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        #addFormOverlay.active {
+            display: flex;
+        }
+        #addForm {
+            background: #111111;
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 0 40px rgba(0,102,255,0.2);
+            border: 1px solid #222;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .form-row > * { flex: 1 1 130px; }
+        .form-row input, .form-row select {
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #222;
+            color: #fff;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .form-actions button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .save-btn { background: #0066ff; color: white; }
+        .cancel-btn { background: #333; color: #ccc; }
+
+        /* График эквити (остаётся как был) */
+        #equityOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        #equityOverlay.active {
+            display: flex;
+        }
+        .chart-container {
+            position: relative;
+            width: 90vw;
+            max-width: 1400px;
+            height: 80vh;
+            background: #111;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 40px rgba(0,102,255,0.2);
+        }
+        .chart-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .chart-close-btn:hover { background: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="logo.png" alt="G Trade Logo" class="logo">
+            <h1>G TRADE JOURNAL</h1>
+            <div class="header-buttons">
+                <button class="btn" onclick="showForm()">+ New</button>
+                <button class="btn" onclick="showEquityChart()">Equity Curve</button>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTrades">0</div>
+                <div class="stat-label">Total Trades</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="winrate">—</div>
+                <div class="stat-label">Winrate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRisk">—</div>
+                <div class="stat-label">Avg Risk</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgRR">—</div>
+                <div class="stat-label">Avg RR</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalReturn">0%</div>
+                <div class="stat-label">Total Return</div>
+            </div>
+        </div>
+
+        <table id="tradesTable">
+            <thead>
+                <tr>
+                    <th>Asset</th>
+                    <th>Date</th>
+                    <th>Session</th>
+                    <th>Dir</th>
+                    <th>Setup</th>
+                    <th>Risk</th>
+                    <th>RR</th>
+                    <th>P/L %</th>
+                    <th>Result</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="tradesBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Модальное окно для формы + New -->
+    <div id="addFormOverlay">
+        <div id="addForm">
+            <div class="form-row">
+                <input type="text" id="newPair" placeholder="Asset" value="XAUUSD">
+                <input type="date" id="newDate">
+                <select id="newSession">
+                    <option value="Asia">Asia</option>
+                    <option value="Frankfurt">Frankfurt</option>
+                    <option value="London">London</option>
+                    <option value="New York">New York</option>
+                </select>
+                <select id="newDirection">
+                    <option value="Long">Long</option>
+                    <option value="Short">Short</option>
+                </select>
+                <input type="text" id="newSetup" placeholder="Setup">
+                <input type="number" step="0.01" id="newRisk" placeholder="Risk % (1.0)">
+                <input type="number" step="0.1" id="newRR" placeholder="RR (3)">
+                <input type="text" id="newPL" class="auto-field" placeholder="P/L % (auto)" readonly>
+                <select id="newResult">
+                    <option value="">Select Result</option>
+                    <option value="Take">Take</option>
+                    <option value="Stop">Stop</option>
+                    <option value="BE">BE</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="hideForm()">Cancel</button>
+                <button class="save-btn" onclick="addTrade()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- График эквити -->
+    <div id="equityOverlay">
+        <div class="chart-container">
+            <button class="chart-close-btn" onclick="hideEquityChart()">Close</button>
+            <canvas id="equityChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // (весь скрипт остаётся точно таким же, как в предыдущей версии)
+        // Только добавлены новые функции для модального окна формы
+
+        let trades = JSON.parse(localStorage.getItem('gTradeJournalEquity')) || [];
+        let chart = null;
+
+        function calculatePL(riskPercent, rr, result) {
+            if (!riskPercent || !result) return '—';
+            riskPercent = parseFloat(riskPercent);
+            if (result === 'Take' && rr) {
+                return (riskPercent * parseFloat(rr)).toFixed(2) + '%';
+            } else if (result === 'Stop') {
+                return '-' + riskPercent.toFixed(2) + '%';
+            } else if (result === 'BE') {
+                return '0%';
+            }
+            return '—';
+        }
+
+        function updateAutoPL() {
+            const risk = document.getElementById('newRisk').value;
+            const rr = document.getElementById('newRR').value;
+            const result = document.getElementById('newResult').value;
+            const pl = calculatePL(risk, rr, result);
+            document.getElementById('newPL').value = pl;
+        }
+
+        ['newRisk', 'newRR', 'newResult'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateAutoPL);
+            document.getElementById(id).addEventListener('change', updateAutoPL);
+        });
+
+        function renderTrades() {
+            const tbody = document.getElementById('tradesBody');
+            tbody.innerHTML = '';
+            let equity = 0;
+            const equityData = [0];
+
+            trades.forEach((trade, index) => {
+                const plValue = trade.pl ? parseFloat(trade.pl) : 0;
+                equity += plValue;
+                equityData.push(equity);
+
+                const plClass = plValue > 0 ? 'pl-positive' : plValue < 0 ? 'pl-negative' : 'pl-zero';
+                const resultText = trade.result || '—';
+                const resultClass = trade.result === 'Take' ? 'win-take' : trade.result === 'Stop' ? 'win-stop' : trade.result === 'BE' ? 'win-be' : '';
+
+                const sessionClass = { 'Asia': 'asia', 'Frankfurt': 'frankfurt', 'London': 'london', 'New York': 'ny' }[trade.session] || 'london';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="pair">${trade.pair}</span></td>
+                    <td class="date">${formatDate(trade.date)}</td>
+                    <td><span class="badge badge-${sessionClass}">${trade.session}</span></td>
+                    <td><span class="badge badge-${trade.direction.toLowerCase()}">${trade.direction}</span></td>
+                    <td>${trade.setup || '—'}</td>
+                    <td>${trade.risk || '—'}</td>
+                    <td>${trade.rr || '—'}</td>
+                    <td class="${plClass}">${trade.pl || '—'}</td>
+                    <td class="${resultClass}">${resultText}</td>
+                    <td><button class="delete-btn" onclick="deleteTrade(${index})">✕</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateStats(equity);
+            updateChart(equityData);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function updateStats(equity) {
+            const total = trades.length;
+            const wins = trades.filter(t => t.result === 'Take').length;
+            const winrate = total > 0 ? ((wins / total) * 100).toFixed(1) + '%' : '—';
+
+            const risks = trades.map(t => parseFloat(t.risk)).filter(v => !isNaN(v));
+            const avgRisk = risks.length > 0 ? (risks.reduce((a,b) => a+b, 0) / risks.length).toFixed(2) + '%' : '—';
+
+            const rrs = trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
+            const avgRRRaw = rrs.length > 0 ? rrs.reduce((a,b) => a+b, 0) / rrs.length : 0;
+            const avgRR = rrs.length > 0 ? avgRRRaw.toFixed(2) : '—';
+
+            document.getElementById('totalTrades').textContent = total;
+            document.getElementById('winrate').textContent = winrate;
+            document.getElementById('avgRisk').textContent = avgRisk;
+            document.getElementById('avgRR').textContent = avgRR;
+            document.getElementById('totalReturn').textContent = equity.toFixed(2) + '%';
+        }
+
+        function updateChart(equityData) {
+            const ctx = document.getElementById('equityChart').getContext('2d');
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Start', ...trades.map((_, i) => `Trade ${i+1}`)],
+                    datasets: [{
+                        label: 'Equity Curve (%)',
+                        data: equityData,
+                        borderColor: '#0066ff',
+                        backgroundColor: 'rgba(0,102,255,0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0066ff',
+                        pointRadius: 5,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Equity Curve', color: '#ccc', font: { size: 20 } }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: '#222' },
+                            ticks: { color: '#aaa' },
+                            title: { display: true, text: 'Return %', color: '#aaa' }
+                        },
+                        x: {
+                            grid: { color: '#222' },
+                            ticks: { color: '#aaa' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showEquityChart() {
+            document.getElementById('equityOverlay').classList.add('active');
+        }
+
+        function hideEquityChart() {
+            document.getElementById('equityOverlay').classList.remove('active');
+        }
+
+        function addTrade() {
+            const pair = document.getElementById('newPair').value.trim() || 'XAUUSD';
+            const date = document.getElementById('newDate').value;
+            if (!date) return alert('Select date');
+
+            const risk = document.getElementById('newRisk').value.trim();
+            const rr = document.getElementById('newRR').value.trim();
+            const result = document.getElementById('newResult').value;
+
+            if (!risk) return alert('Enter Risk %');
+            if (!result) return alert('Select Result');
+
+            const pl = calculatePL(risk, rr, result);
+
+            const trade = {
+                pair: pair.toUpperCase(),
+                date: date,
+                session: document.getElementById('newSession').value,
+                direction: document.getElementById('newDirection').value,
+                setup: document.getElementById('newSetup').value.trim(),
+                risk: risk + '%',
+                rr: rr,
+                pl: pl,
+                result: result
+            };
+
+            trades.unshift(trade);
+            localStorage.setItem('gTradeJournalEquity', JSON.stringify(trades));
+            renderTrades();
+            hideForm();
+        }
+
+        function deleteTrade(index) {
+            trades.splice(index, 1);
+            localStorage.setItem('gTradeJournalEquity', JSON.stringify(trades));
+            renderTrades();
+        }
+
+        function showForm() {
+            document.getElementById('addFormOverlay').classList.add('active');
+            document.getElementById('newDate').value = new Date().toISOString().split('T')[0];
+            updateAutoPL();
+        }
+
+        function hideForm() {
+            document.getElementById('addFormOverlay').classList.remove('active');
+        }
+
+        renderTrades();
+    </script>
+</body>
+</html>
